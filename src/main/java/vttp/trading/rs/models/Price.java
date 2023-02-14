@@ -1,5 +1,7 @@
 package vttp.trading.rs.models;
 
+import java.util.List;
+
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
@@ -12,6 +14,8 @@ public class Price {
     private Double[] openPrices;
     private Double[] closePrices;
     private Long[] datetimes;
+    private List<Double> highs;
+    private List<Double> lows;
     private Double rs1y;
     private Double rs6m;
     private Double rs3m;
@@ -32,6 +36,12 @@ public class Price {
 
     public Double[] getClosePrices() {        return closePrices;    }
     public void setClosePrices(Double[] closePrices) {        this.closePrices = closePrices;    }
+
+    public List<Double> getHighs() {        return highs;    }
+    public void setHighs(List<Double> highs) {        this.highs = highs;    }
+
+    public List<Double> getLows() {        return lows;    }
+    public void setLows(List<Double> lows) {        this.lows = lows;    }
 
     public String getSymbol() {        return symbol;   }
     public void setSymbol(String symbol) {        this.symbol = symbol;    }

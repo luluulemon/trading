@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h2>Reversal Signals</h2>
+
+    <div style="display:flex; justify-content: left">
+        <div>
+            <h4>Red to Green weekly reversals </h4>
+            <ul th:each="ticker: ${R2g}">
+                <li><span th:text="${ticker}"></span>
+                    &nbsp;
+                    <span><a th:href="'https://www.finviz.com/quote.ashx?t=' + ${ticker} +'&p=w'" target="_blank">CHART</a></span>
+                </li>
+            </ul>
+        </div>
+
+        <div style="margin-left:50px">
+            <h4>Green to Red weekly reversals </h4>
+            <ul th:each="ticker: ${G2r}">
+                <li>
+                    <span th:text="${ticker}"></span>
+                    &nbsp;
+                    <span><a th:href="'https://www.finviz.com/quote.ashx?t=' + ${ticker} +'&p=w'" target="_blank">CHART</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

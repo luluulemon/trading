@@ -78,7 +78,7 @@ public class GetPriceController {
         Long lastUpdateTime = 0l;
         for(String ticker: tickers){
             JsonObject updateResults = priceSvc.getPrices(ticker, collectionName, "month", Integer.toString(numMonths));
-            try{    Thread.sleep(300); } catch(InterruptedException e)
+            try{    Thread.sleep(230); } catch(InterruptedException e)
             {    e.printStackTrace();    }
             JsonArray candles = updateResults.getJsonArray("candles");
             int range = candles.size();

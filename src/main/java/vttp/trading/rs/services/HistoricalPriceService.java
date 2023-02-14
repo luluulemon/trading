@@ -76,6 +76,8 @@ public class HistoricalPriceService {
         List<Double> opens =  dbResult.getList("opens", Double.class);
         List<Double> closes =  dbResult.getList("closes", Double.class);
         List<Long> dateTime = dbResult.getList("dates", Long.class);
+        List<Double> highs = dbResult.getList("highs", Double.class);
+        List<Double> lows = dbResult.getList("lows", Double.class);
 
         // combine with the new open close, datetime array
         JsonArray candles = updateResults.getJsonArray("candles");
@@ -83,6 +85,8 @@ public class HistoricalPriceService {
             opens.add( Double.parseDouble( candles.get(i).asJsonObject().get("open").toString() ) );
             closes.add( Double.parseDouble( candles.get(i).asJsonObject().get("close").toString() ) );
             dateTime.add( Long.parseLong( candles.get(i).asJsonObject().get("datetime").toString() ) );
+            highs.add( Double.parseDouble( candles.get(i).asJsonObject().get("high").toString() ) );
+            lows.add( Double.parseDouble( candles.get(i).asJsonObject().get("low").toString() ) );
         }
         System.out.println("Resulting length of the closes: " + closes.size());
 
@@ -94,6 +98,8 @@ public class HistoricalPriceService {
         price.setClosePrices(closes.toArray(closesArray));
         price.setOpenPrices(opens.toArray(opensArray));
         price.setDatetimes(dateTime.toArray(datetime));
+        price.setHighs(highs);
+        price.setLows(lows);
         // send back for update
         return priceRepo.updatePrice(ticker, collectionName, price);
     }

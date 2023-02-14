@@ -41,6 +41,8 @@ public class PriceRepository {
         Update updateOps = new Update().set("opens", price.getOpenPrices())
                                         .set("closes", price.getClosePrices())
                                         .set("dates", price.getDatetimes())
+                                        .set("highs", price.getHighs())
+                                        .set("lows", price.getLows())
                                         .set("rs1y", price.getRs1y())
                                         .set("rs 6 mth", price.getRs6m())
                                         .set("rs 3 mths", price.getRs3m())

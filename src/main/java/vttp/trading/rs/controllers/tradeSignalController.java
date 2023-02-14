@@ -1,5 +1,6 @@
 package vttp.trading.rs.controllers;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import org.bson.Document;
@@ -18,19 +19,15 @@ public class tradeSignalController {
 
     @GetMapping("r2g")
     public String redToGreen(Model model){
-
-        // 1. Previous week is red
-            // Check for previous Fri -> Thur -> Wed etc., get the close, and low
-            // Move towards Monday, get the open
-        // 2. current week is green
-        // 3. green is higher than previous week close
+           
+        List<String> r2g = new LinkedList<>();
+        List<String> g2r = new LinkedList<>();
         List<Document> prices = priceSvc.getIndexPrices("SnP");
 
         // 1641103200 Benchmark time: 30 Jan 2022 Sunday
         long benchMarkTime = 1643522400000l; 
 
         for(Document price: prices){
-            
             if(!price.getString("ticker").equals("log") ){
 
                 double open = 0;
@@ -53,13 +50,13 @@ public class tradeSignalController {
                 long prevDay = 0l;
 
                 while(prevDay < dayOfWeek){
-                    
+                    // move backwards through the lists
                     open = opens.get(size - dayCount);
                     high = Math.max(high, highs.get(size - dayCount));
                     low = Math.min(low, lows.get(size - dayCount));
 
                     dayCount++;
-                    prevDay = ((dates.get(dates.size()-dayCount) - benchMarkTime  )/86400000)%7 ;
+                    prevDay = ((dates.get(size-dayCount) - benchMarkTime  )/86400000)%7 ;
                     //System.out.println("Check prevDay " + prevDay);
                 }
 
@@ -68,8 +65,8 @@ public class tradeSignalController {
                 double prevWkHigh = 0;
                 double prevWkLow = 99999;
 
-                // reset days
-                dayOfWeek = ((dates.get(dates.size()-dayCount) - benchMarkTime  )/86400000)%7 ;
+                // Move backwards for previous week
+                dayOfWeek = ((dates.get(size-dayCount) - benchMarkTime  )/86400000)%7 ;
                 prevDay = 0l;
                 while(prevDay < dayOfWeek){
                     prevWkOpen = opens.get(size - dayCount);
@@ -80,24 +77,24 @@ public class tradeSignalController {
                     prevDay = ((dates.get(dates.size()-dayCount) - benchMarkTime  )/86400000)%7 ;
                 }
 
-                String colors = "  ";
-                if(low<prevWkLow && close>open){
-                    System.out.println(ticker + " has a r2g signal");
+
+                // screen for 1. uppercut previous wk, 2. Previous week is red 3. Close in upper half
+                if(low<prevWkLow && prevWkOpen>prevWkClose &&  close > (high+low)/2 ){
+                    r2g.add(ticker);
+                    // add further checks on signal strength
                 }
-                if(prevWkClose>prevWkOpen){ colors += "G";  }
-                else{   colors += "R";  }
 
-                if(close>open){ colors += "G";}
-                else{ colors += "R"; }
-
-                System.out.println(ticker + " :" + colors);
+                if(high>prevWkHigh && prevWkOpen<prevWkClose &&  close < (high+low)/2 ){
+                    g2r.add(ticker);
+                    // add further checks on signal strength
+                }
             }
+
+            model.addAttribute("R2g", r2g);
+            model.addAttribute("G2r", g2r);
+
         }
 
-
-
-        //model.addAttribute("test", dayOfWeek);
-
-        return "test";
+        return "reversalTemplate";
     }
 }
