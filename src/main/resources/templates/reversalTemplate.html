@@ -11,6 +11,7 @@
 
     <div style="display:flex; justify-content: left">
         <div>
+            <h4>No. of green reversals : <span th:text="${GreenSize}"></span></h4>
             <h4>Red to Green weekly reversals </h4>
             <ul th:each="ticker: ${R2g}">
                 <li><span th:text="${ticker}"></span>
@@ -21,6 +22,7 @@
         </div>
 
         <div style="margin-left:50px">
+            <h4>No. of red reversals : <span th:text="${RedSize}"></span></h4>
             <h4>Green to Red weekly reversals </h4>
             <ul th:each="ticker: ${G2r}">
                 <li>

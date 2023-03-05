@@ -92,6 +92,8 @@ public class tradeSignalController {
 
             model.addAttribute("R2g", r2g);
             model.addAttribute("G2r", g2r);
+            model.addAttribute("GreenSize", r2g.size());
+            model.addAttribute("RedSize", g2r.size());
 
         }
 
