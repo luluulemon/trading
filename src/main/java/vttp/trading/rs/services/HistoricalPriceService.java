@@ -54,7 +54,32 @@ public class HistoricalPriceService {
         return results;
     }
 
-    public Document getPriceByTicker(String ticker, String collectionName){
+    // getPrice with Start Date
+    public JsonObject getPrices(String ticker, String collectionName, String periodType, long startDate){
+
+        String endPointUrl = "https://api.tdameritrade.com/v1/marketdata/%s/pricehistory";
+        String url = UriComponentsBuilder.fromUriString(endPointUrl.formatted(ticker.toUpperCase()))
+                    .queryParam("apikey", apiKey)
+                    .queryParam("periodType", periodType)
+                    .queryParam("startDate", startDate)
+                    .queryParam("frequencyType", "daily")
+                    .queryParam("frequency", "1")
+                    .toUriString(); 
+
+        RequestEntity req = RequestEntity.get(url).build();  
+        RestTemplate template = new RestTemplate();
+        ResponseEntity<String> resp = template.exchange(req, String.class);
+
+        JsonReader reader = Json.createReader(new StringReader(resp.getBody()));
+        JsonObject results = reader.readObject(); 
+
+        return results;
+    }
+
+
+
+
+    public List<Document> getPriceByTicker(String ticker, String collectionName){
         return priceRepo.getPriceByTicker(ticker, collectionName);
     }
 

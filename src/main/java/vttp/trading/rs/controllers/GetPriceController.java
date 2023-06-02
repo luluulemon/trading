@@ -53,69 +53,119 @@ public class GetPriceController {
     }
 
 
+    // @GetMapping("/updatePrice1/{collectionName}")
+    // public String updatePrice(@PathVariable String collectionName){
+        
+    //     List<String> tickers = new LinkedList<>();
+
+    //     long startTime = System.nanoTime();
+    //     // 1. Get last time
+    //     //  Take currentTimeStamp minus (lastTime/1000) / 86400 - 1 (minus one is for time difference)
+    //     //  divide by 30 to get no. of months
+    //     Long lastTime = logSvc.getLogDate(collectionName);
+    //     Long currentTime = System.currentTimeMillis();
+
+    //     int numDays = (int)(currentTime - lastTime)/1000/86400 - 1;
+    //     int numMonths = numDays/30 + 1;
+    //     System.out.println(">>>>>>>>>>>>>>>>>>" + numMonths);
+
+    //     // 2. Cycle through the Json, get the last time index
+    //     if(collectionName.equals("SnP"))
+    //     {   tickers = getIndexSvc.getSnPList();   }     // List of tickers to work on
+    //     else    {   tickers = getIndexSvc.getNQList();  }
+        
+    //     Long updateCount = 0l;
+    //     Long lastUpdateTime = 0l;
+    //     for(String ticker: tickers){
+    //         JsonObject updateResults = priceSvc.getPrices(ticker, collectionName, "month", Integer.toString(numMonths));
+    //         try{    Thread.sleep(300); } catch(InterruptedException e)
+    //         {    e.printStackTrace();    }
+    //         JsonArray candles = updateResults.getJsonArray("candles");
+    //         int range = candles.size();
+    //         lastUpdateTime = Long.parseLong( candles.get(range-1).asJsonObject().get("datetime").toString() );
+
+    //         Document dbResult = priceRepo.getPriceByTicker(ticker, collectionName);
+    //         List<Long> dateTime = dbResult.getList("dates", Long.class);
+    //         Long lastDBTime = dateTime.get(dateTime.size()-1);
+
+    //         if(lastDBTime.equals(lastUpdateTime))
+    //         {   System.out.println("Nothing to update >>>>>>>>>>>>> for " + ticker);    }
+
+    //         else{
+    //             int indexToStart = 0;
+    //             for(int i=0; i< range; i++){
+    //                 JsonObject v = (JsonObject) candles.get(i);
+    //                 Long time = Long.parseLong( v.get("datetime").toString() ) ;
+    //                 if(time > lastDBTime){    
+    //                     indexToStart = i;
+    //                     System.out.println("CHeck index to start: " + indexToStart);
+    //                     break;   }
+    //             }
+    //         // 3. Get the previous object by ticker, update the obj -> Open, close, datetime, and various RS
+    //         // 4. Save back to the database
+            
+    //         updateCount += priceSvc.updatePrices(ticker, collectionName, updateResults, dbResult ,indexToStart);
+    //         }
+                
+    //     }
+    //     // last -> create Log
+    //     logSvc.logPriceUpdate(updateCount, lastUpdateTime, collectionName);
+
+    //     long elapsedTime = System.nanoTime() - startTime;
+    //     System.out.println("Total execution time in millis: " + elapsedTime/1000000);
+
+    //     return "test";
+    // }
+
+    // update Price using last date
     @GetMapping("/updatePrice/{collectionName}")
-    public String updatePrice(@PathVariable String collectionName){
+    public String updatePriceByDate(@PathVariable String collectionName){
         
         List<String> tickers = new LinkedList<>();
+        long startTime = System.nanoTime();     // for counting function time
 
-        long startTime = System.nanoTime();
-        // 1. Get last time
-        //  Take currentTimeStamp minus (lastTime/1000) / 86400 - 1 (minus one is for time difference)
-        //  divide by 30 to get no. of months
-        Long lastTime = logSvc.getLogDate(collectionName);
-        Long currentTime = System.currentTimeMillis();
-
-        int numDays = (int)(currentTime - lastTime)/1000/86400 - 1;
-        int numMonths = numDays/30 + 1;
-        System.out.println(">>>>>>>>>>>>>>>>>>" + numMonths);
-
-        // 2. Cycle through the Json, get the last time index
+        // get index tickers
         if(collectionName.equals("SnP"))
         {   tickers = getIndexSvc.getSnPList();   }     // List of tickers to work on
         else    {   tickers = getIndexSvc.getNQList();  }
         
         Long updateCount = 0l;
-        Long lastUpdateTime = 0l;
         for(String ticker: tickers){
-            JsonObject updateResults = priceSvc.getPrices(ticker, collectionName, "month", Integer.toString(numMonths));
-            try{    Thread.sleep(280); } catch(InterruptedException e)
-            {    e.printStackTrace();    }
-            JsonArray candles = updateResults.getJsonArray("candles");
-            int range = candles.size();
-            lastUpdateTime = Long.parseLong( candles.get(range-1).asJsonObject().get("datetime").toString() );
 
-            Document dbResult = priceRepo.getPriceByTicker(ticker, collectionName);
-            List<Long> dateTime = dbResult.getList("dates", Long.class);
-            Long lastDBTime = dateTime.get(dateTime.size()-1);
-
-            if(lastDBTime.equals(lastUpdateTime))
-            {   System.out.println("Nothing to update >>>>>>>>>>>>> for " + ticker);    }
-
-            else{
-                int indexToStart = 0;
-                for(int i=0; i< range; i++){
-                    JsonObject v = (JsonObject) candles.get(i);
-                    Long time = Long.parseLong( v.get("datetime").toString() ) ;
-                    if(time > lastDBTime){    
-                        indexToStart = i;
-                        System.out.println("CHeck index to start: " + indexToStart);
-                        break;   }
-                }
-            // 3. Get the previous object by ticker, update the obj -> Open, close, datetime, and various RS
-            // 4. Save back to the database
-            
-            updateCount += priceSvc.updatePrices(ticker, collectionName, updateResults, dbResult ,indexToStart);
-            }
+            List<Document> results = priceRepo.getPriceByTicker(ticker, collectionName);
+            if(results.size()==0)   System.out.printf("%s is not available in Mongo ****/n", ticker);
+            if(results.size()>0){
+                Document dbResult = results.get(0);
                 
-        }
-        // last -> create Log
-        logSvc.logPriceUpdate(updateCount, lastUpdateTime, collectionName);
+                List<Long> dateTime = dbResult.getList("dates", Long.class);
+                Long lastDBTime = dateTime.get(dateTime.size()-1);      // get last updated Time Stamp
 
+                // Get JsonObject of prices (make API call)
+                JsonObject updateResults = priceSvc.getPrices(ticker, collectionName, "month", lastDBTime);
+                try{    Thread.sleep(300); } catch(InterruptedException e)
+                {    e.printStackTrace();    }
+                // candles: the array with all the daily prices
+                JsonArray candles = updateResults.getJsonArray("candles"); 
+
+                if(candles.size() == 1)
+                {   System.out.println("Nothing to update for >>>>>>>>>>>>> " + ticker);    }
+                else
+                    updateCount += priceSvc.updatePrices(ticker, collectionName, updateResults, dbResult ,1);
+                    System.out.printf("Updated %d days for %s/n", candles.size()-1 ,ticker );
+            }
+        }
+                
         long elapsedTime = System.nanoTime() - startTime;
         System.out.println("Total execution time in millis: " + elapsedTime/1000000);
 
         return "test";
     }
+
+
+
+
+
+
 
 
     // below endPoints are just for setups!
@@ -146,7 +196,7 @@ public class GetPriceController {
             // {    e.printStackTrace();    }
         }
         // Get updateTime, add to Log
-        List<Long> datesList = priceSvc.getPriceByTicker(tickers.get(0), collectionName).getList("dates", Long.class);
+        List<Long> datesList = priceSvc.getPriceByTicker(tickers.get(0), collectionName).get(0).getList("dates", Long.class);
         lastUpdateTime = datesList.get(datesList.size()-1);
         priceSvc.saveLog(updateCount, lastUpdateTime, collectionName);
 

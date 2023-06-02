@@ -68,9 +68,9 @@ public class PriceRepository {
     }
 
 
-    public Document getPriceByTicker(String ticker, String collectionName){
+    public List<Document> getPriceByTicker(String ticker, String collectionName){
         Query query = Query.query(Criteria.where("ticker").is(ticker));
-        return mongoTemplate.find(query, Document.class, collectionName).get(0);
+        return mongoTemplate.find(query, Document.class, collectionName);
     }
 
     public void saveIndustries(String ticker, HashMap<String, String[]> sectors, String collectionName){
